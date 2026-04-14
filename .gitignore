@@ -1,0 +1,6 @@
+dentx_env/
+db.sqlite3
+media/
+*.pyc
+__pycache__/
+.vscode/
