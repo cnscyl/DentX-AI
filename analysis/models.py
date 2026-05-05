@@ -61,9 +61,9 @@ def analyze_and_visualize(sender, instance, created, **kwargs):
             model = YOLO('bestv6.pt') 
             results = model.predict(
                 source=original_path, 
-                conf=0.20,           
-                iou=0.30,            
-                imgsz=640,           
+                conf=0.10,           
+                iou=0.25,            
+                imgsz=1024,           
                 augment=False,       
                 agnostic_nms=True    
             )
