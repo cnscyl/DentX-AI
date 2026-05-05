@@ -4,12 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <title>DentX-AI | Analysis Dashboard</title>
     <style>
+        .xray-container {
+            background-color: #1a1a1a;
+            padding: 10px;
+            border-right: 1px solid #333;
+        }
         .xray-img {
-            max-height: 500px;
+            max-height: 400px;
+            width: 100%;
             object-fit: contain;
-            background-color: #000;
+            border: 1px solid #444;
+        }
+        .img-label {
+            color: #aaa;
+            font-size: 0.8rem;
+            text-align: center;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .card-body-custom {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
         }
     </style>
 </head>
@@ -19,7 +40,7 @@
             <a class="navbar-brand fw-bold" href="#">
                 <i class="bi bi-shield-plus"></i> DentX-AI Dashboard
             </a>
-            <span class="navbar-text text-white">Hekim Paneli</span>
+            <span class="navbar-text text-white">Dijital Diş Hekimi Paneli</span>
         </div>
     </nav>
 
@@ -28,7 +49,7 @@
             <div class="col-md-8">
                 <div class="card border-primary shadow">
                     <div class="card-header bg-primary text-white">
-                        <h5 class="card-title mb-0">Yeni Panoramik Röntgen Analizi</h5>
+                        <h5 class="card-title mb-0"><i class="bi bi-upload me-2"></i>Yeni Panoramik Röntgen Analizi</h5>
                     </div>
                     <div class="card-body">
                         <form method="post" enctype="multipart/form-data" class="row g-3 align-items-center">
@@ -40,66 +61,80 @@
                                 <button type="submit" class="btn btn-success w-100">Analiz Et</button>
                             </div>
                         </form>
-                        <small class="text-muted mt-2 d-block">Desteklenen formatlar: JPG, PNG. Maksimum dosya boyutu: 10MB</small>
+                        <small class="text-muted mt-2 d-block">Desteklenen formatlar: JPG, PNG. | Maksimum: 10MB</small>
                     </div>
                 </div>
             </div>
         </div>
 
-        <h3 class="mb-4">Geçmiş Analizler</h3>
+        <h3 class="mb-4 text-secondary"><i class="bi bi-clock-history me-2"></i>Geçmiş Analizler</h3>
         <hr>
 
         <div class="row">
             {% for xray in xrays %}
-            <div class="col-md-12 mb-4">
-                <div class="card shadow-sm">
+            <div class="col-md-12 mb-5">
+                <div class="card shadow border-0 overflow-hidden">
                     <div class="row g-0">
-                        <div class="col-md-8 bg-dark d-flex align-items-center justify-content-center">
-                            <img src="{{ xray.image.url }}" class="img-fluid xray-img" alt="Dental X-ray">
+                        <div class="col-md-9">
+                            <div class="row g-0 bg-dark">
+                                <div class="col-6 xray-container">
+                                    <div class="img-label">Orijinal Görüntü</div>
+                                    <img src="{{ xray.image.url }}" class="img-fluid xray-img" alt="Orijinal">
+                                </div>
+                                <div class="col-6 xray-container">
+                                    <div class="img-label text-info">DentX-AI Analizi</div>
+                                    {% if xray.processed_image %}
+                                        <img src="{{ xray.processed_image.url }}" class="img-fluid xray-img" alt="Analizli">
+                                    {% else %}
+                                        <div class="d-flex align-items-center justify-content-center h-100 text-white-50">
+                                            Analiz İşleniyor...
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
                         
-                        <div class="col-md-4">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <h5 class="card-title text-primary">Analiz #{{ xray.id }}</h5>
-                                    <span class="badge bg-secondary">{{ xray.upload_date|date:"d.m.Y H:i" }}</span>
+                        <div class="col-md-3 border-start">
+                            <div class="card-body card-body-custom">
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <h5 class="card-title text-primary mb-0">Analiz #{{ xray.id }}</h5>
+                                        <span class="badge bg-light text-dark border">{{ xray.upload_date|date:"d.m.Y H:i" }}</span>
+                                    </div>
+                                    
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                            <span><i class="bi bi-bug me-2"></i>Çürük:</span>
+                                            <span class="badge rounded-pill {% if xray.has_caries %}bg-danger{% else %}bg-success{% endif %}">
+                                                {% if xray.has_caries %}Tespit Edildi{% else %}Temiz{% endif %}
+                                            </span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                            <span><i class="bi bi-geometry-half me-2"></i>Gömülü Diş:</span>
+                                            <span class="badge rounded-pill {% if xray.has_impaction %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                                {% if xray.has_impaction %}Mevcut{% else %}Yok{% endif %}
+                                            </span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 bg-light p-2 rounded mt-2">
+                                            <strong>AI Güven:</strong>
+                                            <span class="fw-bold text-primary">
+                                                {% if xray.confidence_score %}
+                                                    %{{ xray.confidence_score|floatformat:2 }}
+                                                {% else %}
+                                                    --
+                                                {% endif %}
+                                            </span>
+                                        </li>
+                                    </ul>
                                 </div>
-                                <hr>
                                 
-                                <ul class="list-group list-group-flush">
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        Çürük (Caries):
-                                        <span class="badge rounded-pill {% if xray.has_caries %}bg-danger{% else %}bg-success{% endif %}">
-                                            {% if xray.has_caries %}Tespit Edildi{% else %}Temiz{% endif %}
-                                        </span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        Gömülü Diş:
-                                        <span class="badge rounded-pill {% if xray.has_impaction %}bg-warning text-dark{% else %}bg-success{% endif %}">
-                                            {% if xray.has_impaction %}Mevcut{% else %}Yok{% endif %}
-                                        </span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        Kemik Kaybı:
-                                        <span class="badge rounded-pill {% if xray.has_bone_loss %}bg-danger{% else %}bg-success{% endif %}">
-                                            {% if xray.has_bone_loss %}Kritik{% else %}Normal{% endif %}
-                                        </span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center bg-light mt-2">
-                                        <strong>AI Güven Skoru:</strong>
-                                        <span class="fw-bold text-primary fs-5">
-                                            {% if xray.confidence_score %}
-                                                %{{ xray.confidence_score|floatformat:2 }}
-                                            {% else %}
-                                                --
-                                            {% endif %}
-                                        </span>
-                                    </li>
-                                </ul>
-                                
-                                <div class="mt-4">
-                                    <button class="btn btn-outline-primary w-100 mb-2">PDF Raporu Oluştur</button>
-                                    <small class="text-center d-block text-muted">Yapay zeka analizleri hekim kontrolüne tabidir.</small>
+                                <div class="mt-3">
+                                    <button class="btn btn-primary w-100 mb-2 btn-sm">
+                                        <i class="bi bi-file-pdf me-2"></i>PDF Raporu
+                                    </button>
+                                    <p class="text-center mb-0" style="font-size: 0.7rem; color: #999;">
+                                        *Yapay zeka analizleri hekim onayına tabidir.
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -108,7 +143,8 @@
             </div>
             {% empty %}
             <div class="col-12 text-center py-5">
-                <p class="lead text-muted">Henüz analiz edilmiş bir röntgen bulunmuyor.</p>
+                <i class="bi bi-folder-x fs-1 text-muted"></i>
+                <p class="lead text-muted mt-3">Henüz analiz edilmiş bir röntgen bulunmuyor.</p>
             </div>
             {% endfor %}
         </div>
